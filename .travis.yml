@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+
+before_install:
+    - docker build -t pkhot/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run pkhot/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t pkhot/multi-client ./client
+  - docker build -t pkhot/multi-nginx ./nginx
+  - docker build -t pkhot/multi-server ./server
+  - docker build -t pkhot/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push pkhot/multi-client
+  - docker push pkhot/multi-nginx
+  - docker push pkhot/multi-server
+  - docker push pkhot/multi-worker
